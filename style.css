@@ -55,3 +55,39 @@
 .nav-toggle {
   display: none !important;
 }
+/* =========================================================
+   APPLE-STYLE PRODUCT CARD TYPOGRAPHY
+   ========================================================= */
+
+/* Card Title — Apple’s bold, clean, airy look */
+.card-body h3 {
+  font-size: 18px;           /* bigger, bolder for a premium feel */
+  font-weight: 600;
+  line-height: 1.25;         /* tighter Apple-style line spacing */
+  margin: 0 0 6px;
+  color: #111;
+  letter-spacing: -.015em;   /* subtle optical tightening */
+}
+
+/* Source / metadata text — subtle, soft, reduced emphasis */
+.card-body .source {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  color: rgba(0,0,0,0.55);    /* soft Apple-like grey */
+  display: block;
+  margin-top: 2px;
+}
+
+/* Optional: match Apple’s balanced paragraph rhythm */
+.card-body p {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #333;
+}
+
+/* Give breathing room around text like Apple Store */
+.card-body {
+  padding: 18px 16px 20px;
+}
