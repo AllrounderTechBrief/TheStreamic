@@ -1,99 +1,218 @@
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
 :root {
   --border:#e5e5e5;
   --soft:#f5f5f7;
   --text:#0b0d17;
+  --apple-blue:#0071e3;
 }
 
+/* =========================================================
+   BASE
+========================================================= */
 body {
   margin:0;
   font-family:Inter,system-ui,-apple-system,sans-serif;
   color:var(--text);
+  background:#fff;
 }
 
-/* ------- HEADER ------- */
-
+/* =========================================================
+   APPLE-STYLE HEADER NAVIGATION
+========================================================= */
 .site-nav {
-  height:70px;
-  background:#fff;
-  border-bottom:1px solid var(--border);
+  background:#ffffff;
+  border-bottom:1px solid #e6e6e6;
+  height:56px;
+  display:flex;
+  align-items:center;
 }
 
 .nav-inner {
-  max-width:1200px;
+  max-width:1400px;
   margin:0 auto;
-  height:70px;
+  width:100%;
+  padding:0 22px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 22px;
 }
 
 .nav-logo img {
-  height:26px;
+  height:24px;
+  display:block;
 }
 
 .nav-links {
   display:flex;
-  gap:32px;
+  gap:26px;
   list-style:none;
   margin:0;
   padding:0;
 }
 
 .nav-links a {
-  text-decoration:none !important;
-  color:#111;
+  text-decoration:none;
+  font-size:14px;
   font-weight:500;
-  letter-spacing:.7px;
-  padding-bottom:6px;
+  letter-spacing:.3px;
+  color:#1d1d1f;
+  padding:4px 0;
+  transition:color .2s;
 }
 
 .nav-links a:hover {
-  color:#000;
+  color:var(--apple-blue);
 }
 
-/* Remove all underlines */
-.nav-links a:before,
-.nav-links a:after {
-  display:none !important;
-}
-
-/* Remove separators completely */
 .nav-sep,
 .nav-toggle {
   display:none !important;
 }
 
-/* ------- HERO ------- */
-
+/* =========================================================
+   HERO SECTION
+========================================================= */
 .page-hero {
   background:var(--soft);
   padding:56px 20px;
 }
 
-/* ------- CARDS ------- */
-.card-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:28px;
-  padding:24px 20px;
+.hero-inner {
+  max-width:1000px;
+  margin:0 auto;
 }
+
+/* =========================================================
+   HOME / CATEGORY GRID
+========================================================= */
+
+.card-grid {
+  max-width:1400px;
+  margin:0 auto;
+  padding:40px 20px;
+  display:grid;
+  grid-template-columns:repeat(5, minmax(260px, 1fr));
+  gap:32px;
+}
+
+/* CATEGORY PAGES → 3 columns (Load More pages) */
+.category-wrap .card-grid,
+.card-grid.category {
+  max-width:1100px;
+  margin:0 auto;
+  padding:40px 10px;
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:32px;
+}
+
+/* =========================================================
+   APPLE-STYLE CARDS
+========================================================= */
 
 .card {
   background:#fff;
-  border-radius:16px;
-  padding:16px;
-  box-shadow:0 2px 4px rgba(0,0,0,.06);
-  transition:.25s;
+  border-radius:28px;
+  overflow:hidden;
+  padding:0;
+  box-shadow:0 8px 20px rgba(0,0,0,0.10);
+  transition:transform .25s ease, box-shadow .25s ease;
+  cursor:pointer;
+
+  /* ✦ Apple fade‑in animation */
+  opacity:0;
+  animation:appleFadeIn .9s ease forwards;
 }
 
+@keyframes appleFadeIn {
+  0% { opacity:0; transform:translateY(20px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+
+/* ✦ Apple 3D Hover Tilt */
 .card:hover {
-  transform:translateY(-6px);
-  box-shadow:0 6px 20px rgba(0,0,0,.12);
+  transform:perspective(900px) rotateX(4deg) rotateY(-4deg) translateY(-6px);
+  box-shadow:0 18px 38px rgba(0,0,0,0.18);
 }
 
-/* ------- FOOTER ------- */
+/* =========================================================
+   APPLE IMAGE STYLE + LAZY BLUR EFFECT
+========================================================= */
+.card-image img {
+  width:100%;
+  height:250px;
+  object-fit:cover;
+  border-radius:0;
+  display:block;
 
+  /* ✦ Lazy-loading blur → sharp transition */
+  filter:blur(12px);
+  transform:scale(1.04);
+  transition:filter .6s ease, transform .6s ease;
+}
+
+.card-image img.loaded {
+  filter:blur(0);
+  transform:scale(1);
+}
+
+/* =========================================================
+   CARD TEXT — APPLE STYLE
+========================================================= */
+.card-body {
+  padding:20px 18px 26px;
+}
+
+.card-body h3 {
+  font-size:20px;
+  font-weight:600;
+  line-height:1.25;
+  margin:0 0 8px;
+  color:#111;
+  letter-spacing:-0.01em;
+}
+
+.card-body .source {
+  font-size:14px;
+  font-weight:400;
+  opacity:.6;
+  margin-top:4px;
+}
+
+/* =========================================================
+   APPLE-STYLE LOAD MORE BUTTON
+========================================================= */
+.load-more-wrap {
+  text-align:center;
+  margin:40px 0 60px;
+}
+
+#loadMoreBtn {
+  background:#000;
+  color:#fff;
+  font-size:18px;
+  padding:14px 32px;
+  border-radius:30px;
+  border:0;
+  cursor:pointer;
+  font-weight:500;
+  transition:background .2s, transform .2s;
+}
+
+#loadMoreBtn:hover {
+  background:#333;
+  transform:translateY(-3px);
+}
+
+#loadMoreBtn:active {
+  transform:translateY(0);
+}
+
+/* =========================================================
+   FOOTER (Already Apple-like)
+========================================================= */
 .site-footer {
   background:var(--soft);
   color:#253240;
@@ -110,154 +229,44 @@ body {
   gap:40px;
 }
 
-.foot-brand img {
-  height:22px;
-  margin-bottom:12px;
-}
-
-.site-footer h4 {
-  margin:0 0 10px;
-  font-size:.85rem;
-  font-weight:600;
-  letter-spacing:.08em;
-  color:#5a6773;
-  text-transform:uppercase;
-}
-
 .site-footer a {
   display:block;
   padding:2px 0;
-  font-size:.9rem;
-  color:#253240;
+  font-size:0.9rem;
   text-decoration:none;
+  color:#253240;
 }
 
 .site-footer a:hover {
-  color:#0f5cc0;
+  color:var(--apple-blue);
 }
 
 .footer-note {
   text-align:center;
   margin-top:28px;
-  font-size:.8rem;
+  font-size:0.8rem;
   color:#66727f;
 }
 
-@media (max-width:720px) {
-  .footer-grid {
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width:1100px) {
+  .card-grid {
+    grid-template-columns:repeat(3, 1fr);
+  }
+}
+
+@media (max-width:740px) {
+  .card-grid,
+  .category-wrap .card-grid {
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media (max-width:480px) {
+  .card-grid,
+  .category-wrap .card-grid {
     grid-template-columns:1fr;
-    gap:20px;
   }
-}
-/* =========================================================
-   APPLE‑STYLE PRODUCT GRID — 5 PER ROW, 6 ROWS PER PAGE
-   ========================================================= */
-
-.card-grid {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 30px 20px;
-
-  /* EXACTLY LIKE apple.com/store: fixed number of columns */
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 26px;
-}
-
-/* Apple-style card */
-.card {
-  background: #fff;
-  border-radius: 22px;
-  overflow: hidden;
-  padding: 0;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  transition: transform .25s ease, box-shadow .25s ease;
-  cursor: pointer;
-}
-
-/* Hover effect (just like Apple Store) */
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-}
-
-/* Apple-style full-width clean image */
-.card-image img {
-  width: 100%;
-  height: 200px;         /* smaller like your reference */
-  object-fit: cover;
-  display: block;
-  border-radius: 0;
-}
-
-/* Card body text area */
-.card-body {
-  padding: 18px 16px;
-}
-
-.card-body h3 {
-  margin: 0 0 6px;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.card-body .source {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-/* MOBILE RESPONSIVE (Apple style) */
-@media (max-width: 1100px) {
-  .card-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 740px) {
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .card-grid {
-    grid-template-columns: repeat(1, 1fr);
-  }
-}
-/* =========================================================
-   APPLE-STYLE PRODUCT CARD TYPOGRAPHY
-   ========================================================= */
-
-/* Card Title — Apple’s bold, clean, airy look */
-.card-body h3 {
-  font-size: 18px;           /* bigger, bolder for a premium feel */
-  font-weight: 600;
-  line-height: 1.25;         /* tighter Apple-style line spacing */
-  margin: 0 0 6px;
-  color: #111;
-  letter-spacing: -.015em;   /* subtle optical tightening */
-}
-
-/* Source / metadata text — subtle, soft, reduced emphasis */
-.card-body .source {
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 400;
-  color: rgba(0,0,0,0.55);    /* soft Apple-like grey */
-  display: block;
-  margin-top: 2px;
-}
-
-/* Optional: match Apple’s balanced paragraph rhythm */
-.card-body p {
-  margin: 4px 0 0;
-  font-size: 15px;
-  line-height: 1.45;
-  color: #333;
-}
-
-/* Give breathing room around text like Apple Store */
-.card-body {
-  padding: 18px 16px 20px;
 }
