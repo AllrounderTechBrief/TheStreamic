@@ -1,223 +1,117 @@
 /* =========================================================
-   STREAMIC — Apple‑style UI (fast + smooth)
+   STREAMIC — Visual System (Apple-style, smooth and fast)
+   - View Transitions (native, with graceful fallback)
+   - IntersectionObserver fade-in (cards enter viewport)
+   - GPU parallax for card images (only visible cards)
+   - Hover tilt / parallax (pointer:fine only)
+   - Respects prefers-reduced-motion
    ========================================================= */
+(() => {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasFinePointer = window.matchMedia('(pointer:fine)').matches;
 
-/* -------------------- Variables -------------------- */
-:root{
-  --border:#e5e5e5;
-  --soft:#f5f5f7;
-  --text:#0b0d17;
-  --text-dim:#1d1d1f;
-  --blue:#0071e3;
-  --card-bg:#ffffff;
-  --card-shadow:0 8px 20px rgba(0,0,0,.10);
-  --card-shadow-hover:0 18px 38px rgba(0,0,0,.18);
-}
+  /* -------------------- View Transitions -------------------- */
+  (function enableViewTransitions() {
+    if (!('startViewTransition' in document) || prefersReduced) return;
+    // Intercept same-origin navigations for a subtle transition
+    document.addEventListener('click', (ev) => {
+      const a = ev.target.closest('a');
+      if (!a) return;
+      const url = new URL(a.href, location.href);
+      if (a.target === '_blank' || a.hasAttribute('download') || url.origin !== location.origin) return;
+      if (url.pathname === location.pathname && url.hash) return; // same page anchor
+      ev.preventDefault();
+      document.startViewTransition(() => { location.href = a.href; });
+    }, { capture: true });
+  })();
 
-/* Auto dark mode */
-@media (prefers-color-scheme: dark){
-  :root{
-    --border:#2a2a2a;
-    --soft:#0a0a0a;
-    --text:#f5f5f7;
-    --text-dim:#e6e6e8;
-    --card-bg:#101012;
-    --card-shadow:0 10px 24px rgba(0,0,0,.55);
-    --card-shadow-hover:0 24px 48px rgba(0,0,0,.65);
+  /* -------------------- Fade-in on reveal & Parallax -------------------- */
+  const visible = new Set();
+  let rafScheduled = false;
+
+  function scheduleParallax() {
+    if (rafScheduled || prefersReduced) return;
+    rafScheduled = true;
+    requestAnimationFrame(applyParallax);
   }
-}
 
-/* -------------------- Base -------------------- */
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  color:var(--text);
-  background:#fff;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-}
-@media (prefers-color-scheme: dark){ body{ background:#000; } }
+  function applyParallax() {
+    rafScheduled = false;
+    const vh = window.innerHeight || 800;
+    visible.forEach((card) => {
+      const img = card.querySelector('.card-image img');
+      if (!img) return;
+      const rect = card.getBoundingClientRect();
+      const progress = (rect.top + rect.height / 2 - vh / 2) / vh;  // -0.5..0.5-ish
+      const translate = Math.max(-12, Math.min(12, -progress * 24)); // clamp ±12px
+      img.style.setProperty('--py', prefersReduced ? '0px' : translate.toFixed(2) + 'px');
+    });
+  }
 
-/* View Transitions */
-:root{ view-transition-name: root; }
-::view-transition-old(root), ::view-transition-new(root){ animation-duration:.22s; }
-@media (prefers-reduced-motion: reduce){
-  ::view-transition-old(root), ::view-transition-new(root){ animation:none!important; }
-}
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      const card = en.target;
+      if (en.isIntersecting) {
+        card.classList.add('in-view');       // triggers CSS fade-in
+        visible.add(card);
+      } else {
+        visible.delete(card);
+      }
+    });
+    scheduleParallax();
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.15 });
 
-/* -------------------- Header (Apple‑style) -------------------- */
-.site-nav{
-  background:#ffffff;
-  border-bottom:1px solid #e6e6e6;
-  height:56px; display:flex; align-items:center;
-}
-@media (prefers-color-scheme: dark){
-  .site-nav{ background:#0b0b0b; border-bottom-color:#1b1b1b; }
-}
-.nav-inner{
-  max-width:1400px; margin:0 auto; width:100%;
-  padding:0 22px; display:flex; align-items:center; justify-content:space-between;
-}
-.nav-logo img{ height:24px; display:block; }
-.nav-links{ display:flex; gap:26px; list-style:none; margin:0; padding:0; }
-.nav-links a{
-  text-decoration:none; font-size:14px; font-weight:500; letter-spacing:.3px;
-  color:#1d1d1f; padding:4px 0; transition:color .2s ease;
-}
-.nav-links a:hover{ color:var(--blue); }
-@media (prefers-color-scheme: dark){ .nav-links a{ color:#f5f5f7; } }
-.nav-sep,.nav-toggle{ display:none!important; }
+  window.addEventListener('scroll', scheduleParallax, { passive: true });
+  window.addEventListener('resize', scheduleParallax, { passive: true });
 
-/* -------------------- Hero -------------------- */
-.page-hero{ background:var(--soft); padding:56px 20px; }
-.hero-inner{ max-width:1000px; margin:0 auto; }
+  /* -------------------- Hover tilt (pointer:fine only) -------------------- */
+  function attachTilt(card) {
+    if (!hasFinePointer || prefersReduced) return;
+    let raf = 0;
 
-/* -------------------- Grids -------------------- */
-/* Home pages: 5‑up premium layout */
-.card-grid{
-  max-width:1400px; margin:0 auto; padding:40px 20px;
-  display:grid; grid-template-columns:repeat(5, minmax(260px,1fr));
-  gap:32px;
-}
-/* Category pages: 3 columns */
-.category-wrap .card-grid,
-.card-grid.category{
-  max-width:1100px; margin:0 auto; padding:40px 10px;
-  display:grid; grid-template-columns:repeat(3, 1fr);
-  gap:32px;
-}
+    function onMove(e) {
+      if (raf) return;
+      const { clientX: x, clientY: y } = e;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const r = card.getBoundingClientRect();
+        const dx = (x - r.left) / r.width - 0.5;
+        const dy = (y - r.top) / r.height - 0.5;
+        const max = 6; // degrees
+        card.classList.add('tilting');
+        card.style.setProperty('--ry', (-dx * max).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', ( dy * max).toFixed(2) + 'deg');
+      });
+    }
+    function onLeave() {
+      if (raf) cancelAnimationFrame(raf);
+      card.classList.remove('tilting');
+      card.style.removeProperty('--rx');
+      card.style.removeProperty('--ry');
+    }
+    card.addEventListener('mousemove', onMove, { passive: true });
+    card.addEventListener('mouseleave', onLeave, { passive: true });
+  }
 
-/* Responsive */
-@media (max-width:1100px){
-  .card-grid{ grid-template-columns:repeat(3,1fr); }
-}
-@media (max-width:740px){
-  .card-grid, .category-wrap .card-grid{ grid-template-columns:repeat(2,1fr); }
-}
-@media (max-width:480px){
-  .card-grid, .category-wrap .card-grid{ grid-template-columns:1fr; }
-}
+  /* -------------------- Public API for other scripts -------------------- */
+  function attachVisualEffects(card) {
+    // For safety, only observe if it's a .card element
+    if (!card || !card.classList || !card.classList.contains('card')) return;
+    io.observe(card);
+    attachTilt(card);
+  }
 
-/* -------------------- Cards -------------------- */
-.card{
-  background:var(--card-bg);
-  border-radius:28px; overflow:hidden; padding:0;
-  box-shadow:var(--card-shadow);
-  transition:transform .25s ease, box-shadow .25s ease;
-  cursor:pointer;
-  opacity:0; transform:translateY(18px); /* fade-in hooks */
-}
-.card.in-view{
-  opacity:1; transform:none; transition:opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1);
-}
-.card:hover{ box-shadow:var(--card-shadow-hover); }
-.card.tilting{
-  transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px);
-}
+  // Attach to any cards already in the DOM (e.g., server-rendered)
+  function attachExisting() {
+    document.querySelectorAll('.card').forEach(attachVisualEffects);
+  }
 
-/* Image + parallax hook (no blur) */
-.card-image img{
-  width:100%; height:250px; object-fit:cover; display:block; border-radius:0;
-  transform:translateY(var(--py, 0px)); will-change:transform;
-  opacity:0; transition:opacity .5s ease;
-}
-.card-image img.loaded{ opacity:1; }
+  // Expose for app.js & category.js
+  window.StreamicVisuals = { attach: attachVisualEffects };
+  window.__streamicBindCardEnhancements = attachVisualEffects; // backward compatibility
 
-/* Typography */
-.card-body{ padding:20px 18px 26px; }
-.card-body h3{
-  font-size:20px; font-weight:600; line-height:1.25; margin:0 0 8px;
-  color:var(--text-dim); letter-spacing:-.01em;
-}
-.card-body .source{ font-size:14px; font-weight:400; opacity:.6; margin-top:4px; }
-
-/* -------------------- Load more (centered, modern) -------------------- */
-.load-more-wrap{ text-align:center; margin:40px 0 60px; }
-#loadMoreBtn,
-#loadMore-3d, #loadMore-edit, #loadMore-hw {
-  background:#000; color:#fff; font-size:18px; padding:14px 32px; border-radius:30px;
-  border:0; cursor:pointer; font-weight:500; transition:background .2s, transform .2s;
-}
-#loadMoreBtn:hover,
-#loadMore-3d:hover, #loadMore-edit:hover, #loadMore-hw:hover {
-  background:#333; transform:translateY(-3px);
-}
-#loadMoreBtn:active,
-#loadMore-3d:active, #loadMore-edit:active, #loadMore-hw:active {
-  transform:translateY(0);
-}
-@media (prefers-color-scheme: dark){
-  #loadMoreBtn, #loadMore-3d, #loadMore-edit, #loadMore-hw { background:#fff; color:#000; }
-  #loadMoreBtn:hover, #loadMore-3d:hover, #loadMore-edit:hover, #loadMore-hw:hover { background:#e9e9e9; }
-}
-
-/* -------------------- Footer -------------------- */
-.site-footer{
-  background:var(--soft); color:#253240; padding:44px 20px; margin-top:40px; border-top:1px solid var(--border);
-}
-.footer-grid{
-  max-width:1200px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr; gap:40px;
-}
-.site-footer a{ display:block; padding:2px 0; font-size:.9rem; text-decoration:none; color:#253240; }
-.site-footer a:hover{ color:var(--blue); }
-.footer-note{ text-align:center; margin-top:28px; font-size:.8rem; color:#66727f; }
-@media (prefers-color-scheme: dark){
-  .site-footer{ color:#d9dee6; }
-  .site-footer a{ color:#d9dee6; }
-  .footer-note{ color:#8994a3; }
-}
-
-/* -------------------- Reduce motion -------------------- */
-@media (prefers-reduced-motion: reduce){
-  .card, .card:hover, .card.tilting{ transition:none!important; transform:none!important; }
-  .card-image img{ transition:none!important; }
-  #loadMoreBtn, #loadMore-3d, #loadMore-edit, #loadMore-hw{ transition:none!important; }
-}
-/* =========================================================
-   Edit & Post — segmented control + brand chips
-   ========================================================= */
-.tabs-wrap{
-  max-width:1100px; margin:26px auto 0; padding:0 10px;
-  display:flex; flex-direction:column; gap:14px;
-}
-
-.segmented{
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(0,0,0,.06); padding:6px; border-radius:14px;
-}
-@media (prefers-color-scheme: dark){
-  .segmented{ background:rgba(255,255,255,.08); }
-}
-
-.seg-btn{
-  appearance:none; border:0; cursor:pointer;
-  padding:8px 14px; border-radius:10px;
-  font-size:14px; font-weight:600; letter-spacing:.2px;
-  color:#1d1d1f; background:transparent;
-  transition:background .2s,color .2s;
-}
-.seg-btn.is-active{
-  background:#fff; color:#000; box-shadow:0 1px 2px rgba(0,0,0,.08);
-}
-@media (prefers-color-scheme: dark){
-  .seg-btn{ color:#f2f2f2; }
-  .seg-btn.is-active{ background:#1a1a1a; color:#fff; }
-}
-
-.chips{
-  display:flex; flex-wrap:wrap; gap:8px;
-}
-.chip{
-  appearance:none; border:1px solid #d7d7d7; background:#fff; color:#111;
-  padding:6px 12px; font-size:13px; border-radius:999px; cursor:pointer;
-  transition:background .2s, border-color .2s, color .2s;
-}
-.chip.is-on{
-  background:#000; color:#fff; border-color:#000;
-}
-@media (prefers-color-scheme: dark){
-  .chip{ background:#0e0e0e; color:#f2f2f2; border-color:#2a2a2a; }
-  .chip.is-on{ background:#fff; color:#000; border-color:#fff; }
-}
+  // Init on first load and BFCache restores
+  if (document.readyState !== 'loading') attachExisting();
+  else document.addEventListener('DOMContentLoaded', attachExisting);
+  window.addEventListener('pageshow', () => { attachExisting(); scheduleParallax(); }, { passive: true });
+})();
