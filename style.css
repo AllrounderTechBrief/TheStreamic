@@ -1,118 +1,105 @@
 /* =========================================================
-   STREAMIC — Clean Apple-Style Base (Stable + Restored)
-   ========================================================= */
-
-:root{
+   GLOBAL VARIABLES
+========================================================= */
+:root {
   --border:#e5e5e5;
   --soft:#f5f5f7;
   --text:#0b0d17;
-  --blue:#0071e3;
-  --card-bg:#ffffff;
-  --card-shadow:0 8px 20px rgba(0,0,0,.10);
-  --card-shadow-hover:0 18px 38px rgba(0,0,0,.18);
+  --apple-blue:#0071e3;
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark){
-  :root{
-    --border:#2a2a2a;
-    --soft:#0a0a0a;
-    --text:#f5f5f7;
-    --card-bg:#101012;
-    --card-shadow:0 10px 24px rgba(0,0,0,.45);
-    --card-shadow-hover:0 24px 48px rgba(0,0,0,.55);
-  }
-}
-
-body{
+/* =========================================================
+   BASE
+========================================================= */
+body {
   margin:0;
   font-family:Inter,system-ui,-apple-system,sans-serif;
   color:var(--text);
   background:#fff;
 }
-@media (prefers-color-scheme: dark){
-  body{ background:#000; }
-}
 
 /* =========================================================
-   HEADER
+   APPLE-STYLE HEADER NAVIGATION
 ========================================================= */
-.site-nav{
+.site-nav {
   background:#ffffff;
   border-bottom:1px solid #e6e6e6;
   height:56px;
   display:flex;
   align-items:center;
 }
-@media (prefers-color-scheme: dark){
-  .site-nav{ background:#0b0b0b; border-bottom-color:#1b1b1b; }
-}
 
-.nav-inner{
+.nav-inner {
   max-width:1400px;
-  width:100%;
   margin:0 auto;
+  width:100%;
   padding:0 22px;
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
 }
 
-.nav-logo img{
+.nav-logo img {
   height:24px;
   display:block;
 }
 
-.nav-links{
+.nav-links {
   display:flex;
   gap:26px;
   list-style:none;
-  padding:0;
   margin:0;
+  padding:0;
 }
 
-.nav-links a{
+.nav-links a {
   text-decoration:none;
   font-size:14px;
   font-weight:500;
+  letter-spacing:.3px;
   color:#1d1d1f;
+  padding:4px 0;
   transition:color .2s;
 }
-.nav-links a:hover{ color:var(--blue); }
 
-@media (prefers-color-scheme: dark){
-  .nav-links a{ color:#f5f5f7; }
+.nav-links a:hover {
+  color:var(--apple-blue);
 }
 
-.nav-toggle,.nav-sep{ display:none!important; }
+.nav-sep,
+.nav-toggle {
+  display:none !important;
+}
 
 /* =========================================================
-   HERO
+   HERO SECTION
 ========================================================= */
-.page-hero{
+.page-hero {
   background:var(--soft);
   padding:56px 20px;
 }
-.hero-inner{
+
+.hero-inner {
   max-width:1000px;
   margin:0 auto;
 }
 
 /* =========================================================
-   CARD GRID (HOME)
+   HOME / CATEGORY GRID
 ========================================================= */
-.card-grid{
+
+.card-grid {
   max-width:1400px;
   margin:0 auto;
   padding:40px 20px;
   display:grid;
-  grid-template-columns:repeat(5, minmax(260px,1fr));
+  grid-template-columns:repeat(5, minmax(260px, 1fr));
   gap:32px;
 }
 
-/* CATEGORY: 3 Columns */
+/* CATEGORY PAGES → 3 columns (Load More pages) */
 .category-wrap .card-grid,
-.card-grid.category{
+.card-grid.category {
   max-width:1100px;
   margin:0 auto;
   padding:40px 10px;
@@ -121,101 +108,120 @@ body{
   gap:32px;
 }
 
-/* Responsive */
-@media(max-width:1100px){
-  .card-grid{ grid-template-columns:repeat(3,1fr); }
+/* =========================================================
+   APPLE-STYLE CARDS
+========================================================= */
+
+.card {
+  background:#fff;
+  border-radius:28px;
+  overflow:hidden;
+  padding:0;
+  box-shadow:0 8px 20px rgba(0,0,0,0.10);
+  transition:transform .25s ease, box-shadow .25s ease;
+  cursor:pointer;
+
+  /* ✦ Apple fade‑in animation */
+  opacity:0;
+  animation:appleFadeIn .9s ease forwards;
 }
-@media(max-width:740px){
-  .card-grid,
-  .category-wrap .card-grid{ grid-template-columns:repeat(2,1fr); }
+
+@keyframes appleFadeIn {
+  0% { opacity:0; transform:translateY(20px); }
+  100% { opacity:1; transform:translateY(0); }
 }
-@media(max-width:480px){
-  .card-grid,
-  .category-wrap .card-grid{ grid-template-columns:1fr; }
+
+/* ✦ Apple 3D Hover Tilt */
+.card:hover {
+  transform:perspective(900px) rotateX(4deg) rotateY(-4deg) translateY(-6px);
+  box-shadow:0 18px 38px rgba(0,0,0,0.18);
 }
 
 /* =========================================================
-   CARD
+   APPLE IMAGE STYLE + LAZY BLUR EFFECT
 ========================================================= */
-.card{
-  background:var(--card-bg);
-  border-radius:26px;
-  overflow:hidden;
-  padding:0;
-  box-shadow:var(--card-shadow);
-  cursor:pointer;
-  transition:transform .25s ease, box-shadow .25s ease, opacity .5s ease;
-  opacity:0;
-  transform:translateY(18px);
-}
-.card.in-view{
-  opacity:1;
-  transform:none;
-}
-
-.card:hover{
-  box-shadow:var(--card-shadow-hover);
-  transform:translateY(-4px);
-}
-
-/* Card Image */
-.card-image img{
+.card-image img {
   width:100%;
   height:250px;
   object-fit:cover;
+  border-radius:0;
   display:block;
-  opacity:0;
-  transition:opacity .4s ease;
-}
-.card-image img.loaded{
-  opacity:1;
+
+  /* ✦ Lazy-loading blur → sharp transition */
+  filter:blur(12px);
+  transform:scale(1.04);
+  transition:filter .6s ease, transform .6s ease;
 }
 
-/* Card Body */
-.card-body{
-  padding:20px 18px 26px;
-}
-.card-body h3{
-  margin:0 0 8px;
-  font-size:20px;
-  font-weight:600;
-}
-.card-body .source{
-  font-size:14px;
-  opacity:.6;
+.card-image img.loaded {
+  filter:blur(0);
+  transform:scale(1);
 }
 
 /* =========================================================
-   LOAD MORE BUTTON
+   CARD TEXT — APPLE STYLE
 ========================================================= */
-.load-more-wrap{
+.card-body {
+  padding:20px 18px 26px;
+}
+
+.card-body h3 {
+  font-size:20px;
+  font-weight:600;
+  line-height:1.25;
+  margin:0 0 8px;
+  color:#111;
+  letter-spacing:-0.01em;
+}
+
+.card-body .source {
+  font-size:14px;
+  font-weight:400;
+  opacity:.6;
+  margin-top:4px;
+}
+
+/* =========================================================
+   APPLE-STYLE LOAD MORE BUTTON
+========================================================= */
+.load-more-wrap {
   text-align:center;
   margin:40px 0 60px;
 }
-#loadMoreBtn{
+
+#loadMoreBtn {
   background:#000;
   color:#fff;
   font-size:18px;
   padding:14px 32px;
-  border-radius:28px;
+  border-radius:30px;
   border:0;
   cursor:pointer;
+  font-weight:500;
+  transition:background .2s, transform .2s;
 }
-#loadMoreBtn:hover{
+
+#loadMoreBtn:hover {
   background:#333;
+  transform:translateY(-3px);
+}
+
+#loadMoreBtn:active {
+  transform:translateY(0);
 }
 
 /* =========================================================
-   FOOTER
+   FOOTER (Already Apple-like)
 ========================================================= */
-.site-footer{
+.site-footer {
   background:var(--soft);
+  color:#253240;
   padding:44px 20px;
   margin-top:40px;
   border-top:1px solid var(--border);
 }
 
-.footer-grid{
+.footer-grid {
   max-width:1200px;
   margin:0 auto;
   display:grid;
@@ -223,13 +229,44 @@ body{
   gap:40px;
 }
 
-.site-footer a{
-  text-decoration:none;
+.site-footer a {
   display:block;
   padding:2px 0;
+  font-size:0.9rem;
+  text-decoration:none;
+  color:#253240;
 }
-.footer-note{
+
+.site-footer a:hover {
+  color:var(--apple-blue);
+}
+
+.footer-note {
   text-align:center;
   margin-top:28px;
-  opacity:.75;
+  font-size:0.8rem;
+  color:#66727f;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width:1100px) {
+  .card-grid {
+    grid-template-columns:repeat(3, 1fr);
+  }
+}
+
+@media (max-width:740px) {
+  .card-grid,
+  .category-wrap .card-grid {
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+
+@media (max-width:480px) {
+  .card-grid,
+  .category-wrap .card-grid {
+    grid-template-columns:1fr;
+  }
 }
