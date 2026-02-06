@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit & Post – Streamic</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="canonical" href="https://www.thestreamic.in" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header (already Apple‑style from your global CSS) -->
+  <nav class="site-nav normal">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html" aria-label="Streamic home">
+        <img src="assets/logo.svg" alt="Streamic">
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="streaming-tech.html">STREAMING TECH</a></li>
+        <li><a href="edit-post.html" aria-current="page">EDIT & POST</a></li>
+        <li><a href="newsroom.html">NEWSROOM & NRCS</a></li>
+        <li><a href="playout.html">PLAYOUT & AUTOMATION</a></li>
+        <li><a href="ip-video.html">IP / SMPTE 2110</a></li>
+        <li><a href="cloud.html">CLOUD & AI</a></li>
+        <li><a href="audio.html">AUDIO TECHNOLOGY</a></li>
+        <li><a href="about.html">ABOUT</a></li>
+        <li><a href="contact.html">CONTACT</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="page-hero">
+    <div class="hero-inner">
+      <h1>Edit &amp; Post</h1>
+      <p>Editing systems, VFX, finishing, and post‑production workflows.</p>
+    </div>
+  </header>
+
+  <!-- Segmented tabs + chips -->
+  <main class="category-page">
+    <section class="tabs-wrap">
+      <div class="segmented" role="tablist" aria-label="Edit & Post Sections">
+        <button class="seg-btn is-active" role="tab" aria-selected="true" data-tab="vfx">3D &amp; VFX</button>
+        <button class="seg-btn" role="tab" aria-selected="false" data-tab="editing">Editing &amp; Post</button>
+        <button class="seg-btn" role="tab" aria-selected="false" data-tab="hardware">Hardware / IT</button>
+      </div>
+
+      <!-- Brand chips -->
+      <div class="chips" id="brandChips" aria-label="Filter by brand">
+        <!-- Chips are injected by JS based on active tab -->
+      </div>
+    </section>
+
+    <!-- Grids for each tab (3‑column Apple layout from your CSS) -->
+    <section class="category-wrap">
+      <div id="grid-vfx" class="card-grid category" hidden></div>
+      <div id="grid-editing" class="card-grid category" hidden></div>
+      <div id="grid-hardware" class="card-grid category" hidden></div>
+
+      <div class="load-more-wrap">
+        <button id="loadMoreBtn" class="btn">Load more</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="foot-col">
+        <div class="foot-brand"><img src="assets/logo.svg" alt="Streamic" /></div>
+        <p>Independent aggregation of broadcast & media‑technology news.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Navigation</h4>
+        <a href="edit-post.html">Edit &amp; Post</a>
+        <a href="newsroom.html">Newsroom &amp; NRCS</a>
+        <a href="playout.html">Playout &amp; Automation</a>
+        <a href="ip-video.html">IP / SMPTE 2110</a>
+        <a href="cloud.html">Cloud &amp; AI</a>
+        <a href="audio.html">Audio Technology</a>
+      </div>
+      <div class="foot-col">
+        <h4>Company &amp; Legal</h4>
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+        <a href="cookies.html">Cookie Policy</a>
+        <a href="disclaimer.html">Disclaimer</a>
+        <a href="copyright.html">Copyright Notice</a>
+        <a href="rss-policy.html">RSS Policy</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+    <p class="footer-note">© 2026 The Streamic — All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+  <script src="category.js"></script>
+  <script>
+    // Initialize the tabbed Edit & Post page
+    initEditPostPage();
+  </script>
+</body>
+</html>
