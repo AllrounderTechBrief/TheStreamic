@@ -1,110 +1,90 @@
 /* =========================================================
-   STREAMIC — App bootstrap (home loader + UX basics)
-   - Mobile nav toggle
-   - Cookie bar
-   - Card renderer (preload + fade-in)
-   - Home sections loader (.home-section[data-json])
-   - Hooks into StreamicVisuals for effects
-   ========================================================= */
-
+   STREAMIC — App bootstrap (home loader + shared renderer)
+   - NO BLUR: simple transitions only
+   - Reuses three JSON outputs from build.py:
+       out-3d-vfx.json, out-editing.json, out-hardware.json
+========================================================= */
 (() => {
-  /* -------------------- Mobile nav toggle -------------------- */
-  const toggle = document.querySelector('.nav-toggle');
-  const links = document.getElementById('navLinks');
-  if (toggle && links) {
-    toggle.addEventListener('click', () => {
-      const exp = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!exp));
-      links.classList.toggle('show');
-    });
-  }
-
-  /* -------------------- Cookie bar -------------------- */
-  const bar = document.getElementById('cookieBar');
-  if (bar) {
-    try { if (!localStorage.getItem('cookieChoice')) { bar.hidden = false; } }
-    catch (e) { bar.hidden = false; }
-
-    const hide = (choice) => {
-      try { localStorage.setItem('cookieChoice', choice); } catch (e) {}
-      bar.classList.add('is-hidden'); bar.hidden = true;
-      setTimeout(() => { bar.parentNode && bar.parentNode.removeChild(bar); }, 300);
-    };
-    const acc = document.getElementById('cookieAccept');
-    const ess = document.getElementById('cookieEssential');
-    if (acc) acc.onclick = () => hide('all');
-    if (ess) ess.onclick = () => hide('essential');
-  }
-
-  /* -------------------- Card factory -------------------- */
+  /* ---------- Shared Card Renderer (no blur) ---------- */
   function renderCard(item) {
     const a = document.createElement('a');
     a.className = 'card';
-    a.href = item.link;
+    a.href = item.link || '#';
     a.target = '_blank';
     a.rel = 'noopener';
 
-    // Image wrapper
-    const w = document.createElement('div');
-    w.className = 'card-image';
+    // Image area (always present to keep aspect-ratio stable)
+    const fig = document.createElement('figure');
+    fig.className = 'card-image';
 
     const img = document.createElement('img');
     img.alt = item.source ? ('Image from ' + item.source) : 'News image';
-    img.src = 'assets/fallback.jpg';
     img.loading = 'lazy';
+    img.src = item.image || 'assets/fallback.jpg';
 
-    // Progressive image load (no blur; CSS will fade opacity via .loaded)
-    if (item.image) {
-      const pre = new Image();
-      pre.onload = () => { img.src = item.image; img.classList.add('loaded'); };
-      pre.src = item.image;
-    } else {
-      requestAnimationFrame(() => img.classList.add('loaded'));
-    }
+    // If real image fails, the fallback stays
+    img.addEventListener('error', () => { img.src = 'assets/fallback.jpg'; });
 
-    w.appendChild(img);
-    a.appendChild(w);
+    fig.appendChild(img);
+    a.appendChild(fig);
 
     // Body
-    const b = document.createElement('div');
-    b.className = 'card-body';
-    const h = document.createElement('h3');
-    h.textContent = item.title || 'Untitled';
-    const s = document.createElement('span');
-    s.className = 'source';
-    s.textContent = item.source || '';
-    b.appendChild(h);
-    b.appendChild(s);
-    a.appendChild(b);
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    const h = document.createElement('h3'); h.textContent = item.title || 'Untitled';
+    const s = document.createElement('span'); s.className = 'source'; s.textContent = item.source || '';
+    body.appendChild(h); body.appendChild(s);
+    a.appendChild(body);
 
-    // Visual hooks (fade-in, parallax, tilt)
-    const binder = window.StreamicVisuals?.attach || window.__streamicBindCardEnhancements;
-    if (typeof binder === 'function') binder(a);
+    // Gentle tilt/parallax (light)
+    a.addEventListener('pointermove', (e) => {
+      const r = a.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      const rx = Math.max(-4, Math.min(4, py * 4));
+      const ry = Math.max(-4, Math.min(4, -px * 4));
+      a.style.transform = `translateY(-2px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+    a.addEventListener('pointerleave', () => { a.style.transform = ''; });
 
     return a;
   }
-
-  // Expose for category.js if it wants to reuse
   window.__streamicRenderCard = renderCard;
 
-  /* -------------------- Home loader (.home-section) -------------------- */
+  /* ---------- Normalizer ---------- */
+  const norm = (it) => ({
+    title:  it.title || it.headline || 'Untitled',
+    link:   it.link || it.url || '#',
+    source: it.source || it.site || '',
+    image:  it.image || it.imageUrl || it.thumbnail || ''
+  });
+
+  /* ---------- Map 6 homepage sections → 3 JSON files ---------- */
+  const SOURCE_MAP = {
+    'streaming-tech': 'data/out-hardware.json', // closest fit
+    'newsroom':       'data/out-editing.json',
+    'playout':        'data/out-hardware.json',
+    'ip-video':       'data/out-3d-vfx.json',
+    'cloud-ai':       'data/out-editing.json',
+    'audio':          'data/out-hardware.json'
+  };
+
+  /* ---------- Home sections loader ---------- */
   function loadHome() {
     document.querySelectorAll('.home-section').forEach((sec) => {
-      const file = sec.getAttribute('data-json');
+      const id = (sec.querySelector('.card-grid')?.id || '').replace('grid-',''); // e.g., grid-streaming-tech → streaming-tech
+      const src = SOURCE_MAP[id];
       const grid = sec.querySelector('.card-grid');
-      if (!file || !grid) return;
+      if (!src || !grid) return;
 
-      fetch('data/' + file)
-        .then((r) => r.json())
-        .then((items) => {
-          (items || []).slice(0, 10).forEach((it) => grid.appendChild(renderCard(it)));
-          // trigger a parallax update pass if visual system exists
-          if (window.StreamicVisuals) {
-            // just poke reflow for parallax vars next frame
-            requestAnimationFrame(() => window.dispatchEvent(new Event('scroll')));
-          }
+      fetch(src)
+        .then(r => r.json())
+        .then(items => {
+          (items || []).slice(0, 10).map(norm).forEach((it) => {
+            grid.appendChild(renderCard(it));
+          });
         })
-        .catch(() => { /* fail silently */ });
+        .catch(() => { /* silent fail */ });
     });
   }
 
