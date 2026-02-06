@@ -82,4 +82,50 @@
         padding: 28px 18px;
     }
 }
+
 ``
+/* ===== NEW UPDATED STREAMIC HEADER (Logo + Text) ===== */
+
+/* Make header slightly taller for cleaner breathing space */
+.site-nav {
+    height: 70px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Center header items vertically */
+.nav-inner {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Logo icon slightly larger */
+.nav-logo img {
+    height: 26px;            /* was 22px */
+    margin-right: 6px;
+}
+
+/* STREAMIC text next to logo */
+.nav-logo-text {
+    font-size: 1.15rem;      /* larger but not big */
+    font-weight: 600;        /* bold but not heavy */
+    letter-spacing: 0.5px;
+    color: #0b0d17;          /* clean dark navy */
+    margin-left: 6px;
+    display: inline-block;
+}
+
+/* Navigation links */
+.nav-links a {
+    font-size: 0.85rem;      /* cleaner, modern size */
+    font-weight: 500;
+    letter-spacing: 0.7px;
+    color: #111;
+    padding-bottom: 8px;
+}
+
+.nav-links a:hover {
+    border-bottom: 2px solid #111;
+}
