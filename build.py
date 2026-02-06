@@ -1,4 +1,3 @@
-# build.py
 import feedparser, json, os, re
 from urllib.parse import urlparse, urlunparse
 import requests
@@ -31,124 +30,119 @@ feeds = {
     }
 }
 
+def clean(text: str) -> str:
+    if not text:
+        return ""
+    text = BeautifulSoup(text, "html.parser").get_text(" ", strip=True)
+    text = text.replace("\n", " ").replace("\r", " ").strip()
+    return text
+
 def prefer_https(url: str) -> str:
-    if not url: return ""
+    if not url:
+        return ""
     try:
         p = urlparse(url)
         if p.scheme == "http":
             return urlunparse(("https",) + p[1:])
-    except Exception:
+    except:
         pass
     return url
 
 def looks_like_image(url: str) -> bool:
-    if not url: return False
-    return bool(re.search(r"\\.(png|jpe?g|gif|webp|avif)(\\?|$)", url, re.I))
+    if not url:
+        return False
+    return bool(re.search(r"\\.(jpg|jpeg|png|gif|webp|avif)(\\?|$)", url, re.I))
 
-def extract_image_from_entry(e) -> str:
-    # 1) media_content
+def extract_from_entry(e):
+    # Try: media_content
     try:
-        if hasattr(e, "media_content") and e.media_content:
-            for m in e.media_content:
-                u = prefer_https(m.get("url",""))
-                if looks_like_image(u):
-                    return u
-    except Exception: pass
+        for m in getattr(e, "media_content", []):
+            u = prefer_https(m.get("url", ""))
+            if looks_like_image(u):
+                return u
+    except:
+        pass
 
-    # 2) media_thumbnail
+    # Try: media_thumbnail
     try:
-        if hasattr(e, "media_thumbnail") and e.media_thumbnail:
-            for m in e.media_thumbnail:
-                u = prefer_https(m.get("url",""))
-                if looks_like_image(u):
-                    return u
-    except Exception: pass
+        for m in getattr(e, "media_thumbnail", []):
+            u = prefer_https(m.get("url", ""))
+            if looks_like_image(u):
+                return u
+    except:
+        pass
 
-    # 3) enclosures
+    # Try: enclosures
     try:
-        if hasattr(e, "enclosures") and e.enclosures:
-            for enc in e.enclosures:
-                u = prefer_https(enc.get("href","") or enc.get("url",""))
-                if looks_like_image(u):
-                    return u
-    except Exception: pass
+        for enc in getattr(e, "enclosures", []):
+            u = prefer_https(enc.get("href") or enc.get("url", ""))
+            if looks_like_image(u):
+                return u
+    except:
+        pass
 
-    # 4) inline <img> in content/summary
-    def first_img(html):
-        try:
-            soup = BeautifulSoup(html, "html.parser")
-            tag = soup.find("img")
-            if tag and tag.get("src"):
-                u = prefer_https(tag["src"])
-                if looks_like_image(u):
-                    return u
-        except Exception:
-            return ""
-        return ""
-
+    # Try HTML content
     try:
+        blocks = []
         if hasattr(e, "content"):
-            for c in e.content:
-                img = first_img(c.value)
-                if img: return img
-    except Exception: pass
+            blocks = [c.value for c in e.content]
+        elif hasattr(e, "summary"):
+            blocks = [e.summary]
 
-    try:
-        if hasattr(e, "summary"):
-            img = first_img(e.summary)
-            if img: return img
-    except Exception: pass
+        for html in blocks:
+            soup = BeautifulSoup(html, "html.parser")
+            img = soup.find("img")
+            if img and img.get("src"):
+                u = prefer_https(img["src"])
+                if looks_like_image(u):
+                    return u
+    except:
+        pass
 
     return ""
 
-def extract_og_image(article_url: str) -> str:
+def extract_og(link):
     try:
-        r = requests.get(article_url, timeout=TIMEOUT, headers={"User-Agent":"Mozilla/5.0"})
-        if r.status_code != 200: return ""
+        r = requests.get(link, timeout=TIMEOUT, headers={"User-Agent": "Mozilla"})
+        if r.status_code != 200:
+            return ""
         soup = BeautifulSoup(r.text, "html.parser")
-        # OpenGraph then Twitter
-        for name in ["og:image", "twitter:image", "twitter:image:src"]:
-            tag = soup.find("meta", property=name) or soup.find("meta", attrs={"name":name})
-            if tag:
-                u = prefer_https(tag.get("content", ""))
-                if looks_like_image(u):
-                    return u
-    except Exception:
-        return ""
+        tag = soup.find("meta", property="og:image") or \
+              soup.find("meta", attrs={"name": "twitter:image"}) or \
+              soup.find("meta", attrs={"name": "twitter:image:src"})
+        if tag:
+            u = prefer_https(tag.get("content", ""))
+            if looks_like_image(u):
+                return u
+    except:
+        pass
     return ""
 
 os.makedirs("data", exist_ok=True)
 
-for cat, sources in feeds.items():
+for category, sources in feeds.items():
     items = []
-    for name, url in sources.items():
-        try:
-            feed = feedparser.parse(url)
-            for e in feed.entries[:12]:
-                title = getattr(e, "title", "").strip()
-                link  = getattr(e, "link", "").strip()
+    for source, url in sources.items():
+        feed = feedparser.parse(url)
 
-                # image from RSS fields
-                image = extract_image_from_entry(e)
+        for e in feed.entries[:12]:
+            title = clean(getattr(e, "title", ""))
+            link = getattr(e, "link", "").strip()
 
-                # final fallback: scrape og:image
-                if not image and link:
-                    image = extract_og_image(link)
+            image = extract_from_entry(e)
+            if not image:
+                image = extract_og(link)
 
-                # last cleanup
-                image = prefer_https(image)
+            image = prefer_https(image)
 
-                items.append({
-                    "title": title,
-                    "link": link,
-                    "source": name,
-                    "image": image
-                })
-        except Exception:
-            # keep going for other sources
-            pass
+            items.append({
+                "title": title,
+                "link": link,
+                "source": source,
+                "image": image
+            })
 
-    with open(f"data/{cat}.json", "w", encoding="utf-8") as f:
+    with open(f"data/{category}.json", "w", encoding="utf-8") as f:
         json.dump(items, f, ensure_ascii=False, indent=2)
 
-    print(f"Wrote {len(items)} items to {cat}.json")
+    print(f"{category}: {len(items)} items")
