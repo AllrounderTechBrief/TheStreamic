@@ -9,11 +9,11 @@
 </head>
 <body>
 
-  <!-- Header (already Apple‑style from your global CSS) -->
+  <!-- Apple-style header you already use -->
   <nav class="site-nav normal">
     <div class="nav-inner">
       <a class="nav-logo" href="index.html" aria-label="Streamic home">
-        <img src="assets/logo.svg" alt="Streamic">
+        <img src="assets/logo.svg" alt="Streamic"/>
       </a>
       <ul class="nav-links" id="navLinks">
         <li><a href="streaming-tech.html">STREAMING TECH</a></li>
@@ -29,34 +29,24 @@
     </div>
   </nav>
 
-  <!-- Hero -->
   <header class="page-hero">
     <div class="hero-inner">
-      <h1>Edit &amp; Post</h1>
-      <p>Editing systems, VFX, finishing, and post‑production workflows.</p>
+      <h1>Edit & Post</h1>
+      <p>Editing systems, VFX, finishing, creative collaboration, and broadcast graphics tooling.</p>
     </div>
   </header>
 
-  <!-- Segmented tabs + chips -->
-  <main class="category-page">
-    <section class="tabs-wrap">
-      <div class="segmented" role="tablist" aria-label="Edit & Post Sections">
-        <button class="seg-btn is-active" role="tab" aria-selected="true" data-tab="vfx">3D &amp; VFX</button>
-        <button class="seg-btn" role="tab" aria-selected="false" data-tab="editing">Editing &amp; Post</button>
-        <button class="seg-btn" role="tab" aria-selected="false" data-tab="hardware">Hardware / IT</button>
-      </div>
-
-      <!-- Brand chips -->
-      <div class="chips" id="brandChips" aria-label="Filter by brand">
-        <!-- Chips are injected by JS based on active tab -->
-      </div>
-    </section>
-
-    <!-- Grids for each tab (3‑column Apple layout from your CSS) -->
+  <main>
     <section class="category-wrap">
-      <div id="grid-vfx" class="card-grid category" hidden></div>
-      <div id="grid-editing" class="card-grid category" hidden></div>
-      <div id="grid-hardware" class="card-grid category" hidden></div>
+
+      <h2>3D &amp; VFX</h2>
+      <div id="content-3d" class="card-grid category"></div>
+
+      <h2>Editing &amp; Post</h2>
+      <div id="content-edit" class="card-grid category"></div>
+
+      <h2>Hardware / IT</h2>
+      <div id="content-hw" class="card-grid category"></div>
 
       <div class="load-more-wrap">
         <button id="loadMoreBtn" class="btn">Load more</button>
@@ -64,12 +54,11 @@
     </section>
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-grid">
       <div class="foot-col">
-        <div class="foot-brand"><img src="assets/logo.svg" alt="Streamic" /></div>
-        <p>Independent aggregation of broadcast & media‑technology news.</p>
+        <div class="foot-brand"><img src="assets/logo.svg" alt="Streamic"/></div>
+        <p>Independent aggregation of broadcast & media-technology news.</p>
       </div>
       <div class="foot-col">
         <h4>Navigation</h4>
@@ -95,12 +84,13 @@
     <p class="footer-note">© 2026 The Streamic — All rights reserved.</p>
   </footer>
 
-  <!-- Scripts -->
-  <script src="app.js"></script>
   <script src="category.js"></script>
   <script>
-    // Initialize the tabbed Edit & Post page
-    initEditPostPage();
+    loadCategoryGroup([
+      { file: "out-3d-vfx.json",   target: "content-3d"   },
+      { file: "out-editing.json",  target: "content-edit" },
+      { file: "out-hardware.json", target: "content-hw"   }
+    ]);
   </script>
 </body>
 </html>
