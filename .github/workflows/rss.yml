@@ -17,7 +17,8 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pip install feedparser
+        run: |
+          pip install feedparser requests beautifulsoup4
       - name: Run RSS builder
         run: python build.py
       - name: Configure Git
