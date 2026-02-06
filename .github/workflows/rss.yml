@@ -1,31 +1,42 @@
 name: Update RSS
 
 on:
+  # Runs every day at 06:00 UTC
   schedule:
     - cron: '0 6 * * *'
+  # Allow manual trigger from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write       # required to push updated JSON files
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install feedparser requests beautifulsoup4
-      - name: Run RSS builder
-        run: python build.py
-      - name: Configure Git
+
+      - name: Build RSS JSON
+        run: |
+          python build.py
+
+      - name: Configure Git author (CI)
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-      - name: Commit and push JSON
+
+      - name: Commit and push JSON changes
         run: |
           git add data
           git commit -m "Auto-generate RSS JSON" || echo "Nothing to commit"
